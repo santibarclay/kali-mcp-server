@@ -37,8 +37,8 @@ A Model Context Protocol (MCP) server that provides access to Kali Linux penetra
 
 ## Usage Examples
 
-- "Scan google.com port 80 with nmap"
-- "Run nikto scan on http://httpbin.org"
+- "Scan testphp.vulnweb.com port 80 with nmap"
+- "Run nikto scan on http://testphp.vulnweb.com"
 - "Search for Apache exploits"
 - "List available wordlists"
 
