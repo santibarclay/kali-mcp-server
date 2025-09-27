@@ -56,5 +56,7 @@ A Model Context Protocol (MCP) server that provides access to Kali Linux penetra
 
 ## Notes
 
-- Nikto scans may take 2-3 minutes to complete
-- For faster results, restart Claude Desktop after any timeout errors
+- **Nikto limitations**: Works best on traditional web apps. Modern SPAs (like Angular/React) may timeout or show limited results
+- **Best targets for Nikto**: Traditional PHP/Apache/Nginx sites like httpbin.org
+- **For SPAs**: Use nmap for port discovery, searchsploit for specific vulnerabilities
+- Restart Claude Desktop after timeout errors for better performance
