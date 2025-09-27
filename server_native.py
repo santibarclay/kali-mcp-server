@@ -133,6 +133,51 @@ async def list_tools() -> List[Tool]:
                 "properties": {},
                 "required": []
             }
+        ),
+        Tool(
+            name="ffuf_fuzz",
+            description="Fast web fuzzer for directory/file discovery and parameter fuzzing",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "target": {"type": "string", "description": "Target URL (use FUZZ placeholder for fuzzing point)"},
+                    "wordlist": {"type": "string", "default": "/usr/share/dirb/wordlists/common.txt", "description": "Wordlist file path"},
+                    "extensions": {"type": "string", "description": "File extensions to test (e.g., 'php,html,js')"},
+                    "threads": {"type": "integer", "default": 40, "description": "Number of threads"},
+                    "filter_status": {"type": "string", "description": "Filter HTTP status codes (e.g., '404,403')"}
+                },
+                "required": ["target"]
+            }
+        ),
+        Tool(
+            name="gobuster_dir",
+            description="Directory/file brute forcer using Go",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "target": {"type": "string", "description": "Target URL"},
+                    "wordlist": {"type": "string", "default": "/usr/share/dirb/wordlists/common.txt", "description": "Wordlist file path"},
+                    "extensions": {"type": "string", "description": "File extensions to test (e.g., 'php,html,js')"},
+                    "threads": {"type": "integer", "default": 10, "description": "Number of threads"},
+                    "status_codes": {"type": "string", "default": "200,204,301,302,307,401,403", "description": "Positive status codes"}
+                },
+                "required": ["target"]
+            }
+        ),
+        Tool(
+            name="httpx_probe",
+            description="Fast HTTP probe for discovering live hosts and services",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "target": {"type": "string", "description": "Target URL or host"},
+                    "ports": {"type": "string", "description": "Port list (e.g., '80,443,8080')"},
+                    "follow_redirects": {"type": "boolean", "default": True, "description": "Follow HTTP redirects"},
+                    "title": {"type": "boolean", "default": True, "description": "Extract page titles"},
+                    "tech_detect": {"type": "boolean", "default": True, "description": "Detect technologies"}
+                },
+                "required": ["target"]
+            }
         )
     ]
 
@@ -238,13 +283,106 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
         except Exception as e:
             return [TextContent(type="text", text=f"Error listing wordlists: {str(e)}")]
 
+    elif name == "ffuf_fuzz":
+        try:
+            target = arguments["target"]
+            # Basic URL validation
+            if not target.startswith(("http://", "https://")):
+                target = f"http://{target}"
+
+            wordlist = arguments.get("wordlist", "/usr/share/dirb/wordlists/common.txt")
+            threads = arguments.get("threads", 40)
+
+            cmd = ["ffuf", "-u", target, "-w", wordlist, "-t", str(threads), "-c"]
+
+            # Add extensions if specified
+            extensions = arguments.get("extensions")
+            if extensions:
+                cmd.extend(["-e", extensions])
+
+            # Filter status codes if specified
+            filter_status = arguments.get("filter_status")
+            if filter_status:
+                cmd.extend(["-fc", filter_status])
+
+            result = await run_command(cmd, timeout=300)
+
+            if result["success"]:
+                return [TextContent(type="text", text=f"FFUF FUZZING RESULTS:\n{result['stdout']}")]
+            else:
+                return [TextContent(type="text", text=f"FFUF FUZZING FAILED:\nError: {result.get('stderr', result.get('error', 'Unknown error'))}")]
+
+        except Exception as e:
+            return [TextContent(type="text", text=f"Error: {str(e)}")]
+
+    elif name == "gobuster_dir":
+        try:
+            target = arguments["target"]
+            # Basic URL validation
+            if not target.startswith(("http://", "https://")):
+                target = f"http://{target}"
+
+            wordlist = arguments.get("wordlist", "/usr/share/dirb/wordlists/common.txt")
+            threads = arguments.get("threads", 10)
+            status_codes = arguments.get("status_codes", "200,204,301,302,307,401,403")
+
+            cmd = ["gobuster", "dir", "-u", target, "-w", wordlist, "-t", str(threads), "-s", status_codes, "-q"]
+
+            # Add extensions if specified
+            extensions = arguments.get("extensions")
+            if extensions:
+                cmd.extend(["-x", extensions])
+
+            result = await run_command(cmd, timeout=300)
+
+            if result["success"]:
+                return [TextContent(type="text", text=f"GOBUSTER DIRECTORY SCAN RESULTS:\n{result['stdout']}")]
+            else:
+                return [TextContent(type="text", text=f"GOBUSTER DIRECTORY SCAN FAILED:\nError: {result.get('stderr', result.get('error', 'Unknown error'))}")]
+
+        except Exception as e:
+            return [TextContent(type="text", text=f"Error: {str(e)}")]
+
+    elif name == "httpx_probe":
+        try:
+            target = arguments["target"]
+
+            cmd = ["httpx", "-u", target, "-silent"]
+
+            # Add ports if specified
+            ports = arguments.get("ports")
+            if ports:
+                cmd.extend(["-p", ports])
+
+            # Follow redirects
+            if arguments.get("follow_redirects", True):
+                cmd.append("-fr")
+
+            # Extract titles
+            if arguments.get("title", True):
+                cmd.append("-title")
+
+            # Technology detection
+            if arguments.get("tech_detect", True):
+                cmd.append("-tech-detect")
+
+            result = await run_command(cmd, timeout=120)
+
+            if result["success"]:
+                return [TextContent(type="text", text=f"HTTPX PROBE RESULTS:\n{result['stdout']}")]
+            else:
+                return [TextContent(type="text", text=f"HTTPX PROBE FAILED:\nError: {result.get('stderr', result.get('error', 'Unknown error'))}")]
+
+        except Exception as e:
+            return [TextContent(type="text", text=f"Error: {str(e)}")]
+
     else:
         return [TextContent(type="text", text=f"Unknown tool: {name}")]
 
 
 async def main():
     print("Starting Kali Security Tools MCP Server (Native)", file=sys.stderr)
-    print("Available tools: nmap_scan, nikto_scan, searchsploit_search, list_wordlists", file=sys.stderr)
+    print("Available tools: nmap_scan, nikto_scan, searchsploit_search, list_wordlists, ffuf_fuzz, gobuster_dir, httpx_probe", file=sys.stderr)
     print("WARNING: Use only for educational purposes in controlled environments!", file=sys.stderr)
 
     async with stdio_server() as (read_stream, write_stream):

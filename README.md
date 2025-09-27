@@ -9,9 +9,12 @@ A Model Context Protocol (MCP) server that provides access to Kali Linux penetra
 | Tool | Description |
 |------|-------------|
 | `nmap_scan` | Network port scanning and service detection |
-| `nikto_scan` | Web vulnerability scanning |
+| `nikto_scan` | Web vulnerability scanning (traditional apps) |
 | `searchsploit_search` | Search exploit database |
 | `list_wordlists` | List available wordlists |
+| `httpx_probe` | Fast HTTP probe for discovering live hosts and services |
+| `gobuster_dir` | Directory/file brute forcer optimized for modern web apps |
+| `ffuf_fuzz` | Fast web fuzzer for directory discovery and parameter fuzzing |
 
 ## Quick Start
 
@@ -38,7 +41,10 @@ A Model Context Protocol (MCP) server that provides access to Kali Linux penetra
 ## Usage Examples
 
 - "Scan httpbin.org port 80 with nmap"
-- "Run nikto scan on http://httpbin.org"
+- "Run nikto scan on http://httpbin.org" (traditional web apps)
+- "Use httpx to probe localhost:3001"
+- "Run gobuster directory scan on http://localhost:3001"
+- "Use ffuf to fuzz http://localhost:3001/FUZZ"
 - "Search for Apache exploits"
 - "List available wordlists"
 
@@ -56,7 +62,12 @@ A Model Context Protocol (MCP) server that provides access to Kali Linux penetra
 
 ## Notes
 
-- **Nikto limitations**: Works best on traditional web apps. Modern SPAs (like Angular/React) may timeout or show limited results
-- **Best targets for Nikto**: Traditional PHP/Apache/Nginx sites like httpbin.org
-- **For SPAs**: Use nmap for port discovery, searchsploit for specific vulnerabilities
+- **Traditional vs Modern Apps**:
+  - **Nikto**: Best for traditional web apps (PHP/Apache/Nginx)
+  - **Modern SPAs**: Use httpx, gobuster, and ffuf for better results with React/Angular/Vue apps
+- **Recommended workflow for SPAs**:
+  1. **httpx**: Probe for live services and technology detection
+  2. **gobuster**: Directory/file brute forcing
+  3. **ffuf**: Parameter fuzzing and advanced discovery
+- **Testing targets**: Use JuiceShop (OWASP vulnerable app) for safe testing
 - Restart Claude Desktop after timeout errors for better performance
