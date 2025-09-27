@@ -37,8 +37,8 @@ A Model Context Protocol (MCP) server that provides access to Kali Linux penetra
 
 ## Usage Examples
 
-- "Scan testphp.vulnweb.com port 80 with nmap"
-- "Run nikto scan on http://testphp.vulnweb.com"
+- "Scan httpbin.org port 80 with nmap"
+- "Run nikto scan on http://httpbin.org"
 - "Search for Apache exploits"
 - "List available wordlists"
 
@@ -53,3 +53,8 @@ A Model Context Protocol (MCP) server that provides access to Kali Linux penetra
 - Input sanitization
 - Non-root user
 - Command timeouts
+
+## Notes
+
+- Nikto scans may take 2-3 minutes to complete
+- For faster results, restart Claude Desktop after any timeout errors
